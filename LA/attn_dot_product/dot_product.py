@@ -1,5 +1,8 @@
 from intel_npu_acceleration_library.backend import SDPA
 import numpy as np
+import torch
+import time
+import json
 
 query_shapes = (1, 8, 16)  
 key_shapes = (1, 8, 16)    
@@ -24,3 +27,9 @@ mask = np.random.randint(0, 2, mask_shapes).astype(np.float16)
 
 output = sdpa_layer(query, key, value, mask)
 print(output)
+
+with open("profiling.json") as fp:
+    hwp_runtime = (
+        json.load(fp)["taskStatistics"]["total duration"] / 1000.0
+    )
+print(hwp_runtime)
