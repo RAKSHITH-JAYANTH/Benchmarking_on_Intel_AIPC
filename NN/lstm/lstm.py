@@ -1,6 +1,7 @@
 import intel_npu_acceleration_library
 import torch
 import torch.nn as nn
+from torch.profiler import profile, record_function, ProfilerActivity
 
 torch.manual_seed(42)
 
@@ -35,9 +36,13 @@ loaded_model.eval()
 
 loaded_model = torch.compile(loaded_model, backend="npu")
 
-test_input = torch.randn(1, 10, input_size)
-with torch.no_grad():
-    output = loaded_model(test_input)
+with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as prof:
+    with record_function("loaded_model_inference"):
+        test_input = torch.randn(1, 10, input_size)
+        with torch.no_grad():
+            output = loaded_model(test_input)
+
+print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
 
 print("\nLoaded model output shape:", output.shape)
 print("Loaded model output:", output)
